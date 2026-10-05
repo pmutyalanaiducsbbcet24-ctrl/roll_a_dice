@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Password Generator</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 25px;
+
+            background:
+                radial-gradient(circle at 10% 20%, #ff0080 0%, transparent 25%),
+                radial-gradient(circle at 90% 80%, #00e5ff 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, #7000ff 0%, transparent 35%),
+                #08001c;
+
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            z-index: -1;
+            animation: float 8s infinite alternate ease-in-out;
+        }
+
+        body::before {
+            background: #ff00cc;
+            top: -100px;
+            left: -100px;
+        }
+
+        body::after {
+            background: #00ffff;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(100px, 50px) scale(1.3);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+
+            padding: 35px;
+
+            background: rgba(15, 10, 40, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+
+            box-shadow:
+                0 0 30px rgba(255, 0, 204, 0.25),
+                0 0 60px rgba(0, 229, 255, 0.15);
+
+            animation: appear 0.8s ease;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title h1 {
+            font-size: clamp(28px, 6vw, 48px);
+            font-weight: 800;
+
+            background: linear-gradient(
+                90deg,
+                #ff00cc,
+                #7b2cff,
+                #00e5ff,
+                #00ff88,
+                #ff00cc
+            );
+
+            background-size: 300% 300%;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+
+            animation: gradientText 5s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .title p {
+            color: #c9c2e9;
+            margin-top: 8px;
+        }
+
+        /* Password display */
+
+        .password-box {
+            position: relative;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #password {
+            flex: 1;
+            min-width: 0;
+
+            padding: 18px 55px 18px 18px;
+
+            border-radius: 15px;
+            border: 2px solid transparent;
+
+            background:
+                linear-gradient(#100a2b, #100a2b) padding-box,
+                linear-gradient(90deg, #ff00cc, #7b2cff, #00e5ff) border-box;
+
+            color: #fff;
+            font-size: 18px;
+            letter-spacing: 1px;
+            outline: none;
+
+            box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.08);
+        }
+
+        .icon-btn {
+            width: 48px;
+            height: 48px;
+
+            border: none;
+            border-radius: 12px;
+
+            background: linear-gradient(135deg, #7b2cff, #ff00cc);
+            color: white;
+
+            font-size: 20px;
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(255, 0, 204, 0.5);
+        }
+
+        /* Strength */
+
+        .strength-area {
+            margin-bottom: 25px;
+        }
+
+        .strength-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        #strengthText {
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 10px;
+
+            background: #21194a;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        #strengthFill {
+            height: 100%;
+            width: 0%;
+            border-radius: 20px;
+
+            background: #ff3355;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        /* Settings */
+
+        .settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .setting-card {
+            padding: 20px;
+
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+
+            transition: 0.3s;
+        }
+
+        .setting-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.08);
+        }
+
+        .setting-card h3 {
+            margin-bottom: 15px;
+            color: #00e5ff;
+        }
+
+        /* Length */
+
+        .length-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #length {
+            width: 100%;
+            accent-color: #ff00cc;
+            cursor: pointer;
+        }
+
+        #lengthValue {
+            min-width: 45px;
+            padding: 7px 10px;
+
+            text-align: center;
+
+            border-radius: 8px;
+            background: linear-gradient(135deg, #ff00cc, #7b2cff);
+
+            font-weight: bold;
+        }
+
+        /* Checkboxes */
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            color: #ddd6ff;
+            cursor: pointer;
+        }
+
+        .option input {
+            width: 18px;
+            height: 18px;
+
+            accent-color: #00e5ff;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+
+        .buttons {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+
+            margin-top: 25px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        .generate-btn {
+            padding: 17px;
+
+            border-radius: 14px;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            background: linear-gradient(
+                90deg,
+                #ff0080,
+                #7b2cff,
+                #00e5ff,
+                #7b2cff,
+                #ff0080
+            );
+
+            background-size: 300% 100%;
+            animation: buttonGradient 5s infinite linear;
+
+            box-shadow: 0 0 25px rgba(255, 0, 204, 0.25);
+
+            transition: 0.3s;
+        }
+
+        @keyframes buttonGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 300% 50%;
+            }
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 35px rgba(0, 229, 255, 0.4);
+        }
+
+        .clear-btn {
+            padding: 17px;
+
+            border-radius: 14px;
+
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+
+            font-weight: bold;
+
+            transition: 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 50, 80, 0.2);
+            border-color: #ff3355;
+        }
+
+        /* History */
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-header h3 {
+            color: #ff00cc;
+        }
+
+        #clearHistory {
+            background: transparent;
+            color: #ff5577;
+            font-size: 13px;
+        }
+
+        #historyList {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .history-password {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            color: #c8faff;
+            font-family: monospace;
+        }
+
+        .history-copy {
+            flex-shrink: 0;
+
+            padding: 6px 10px;
+
+            border-radius: 7px;
+
+            background: #22184d;
+            color: #00e5ff;
+
+            font-size: 12px;
+        }
+
+        /* Toast */
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 25px;
+
+            transform: translate(-50%, 100px);
+
+            padding: 13px 22px;
+
+            border-radius: 30px;
+
+            background: linear-gradient(135deg, #ff00cc, #7b2cff);
+            color: white;
+
+            box-shadow: 0 0 25px rgba(255, 0, 204, 0.4);
+
+            opacity: 0;
+
+            transition: 0.4s;
+
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* Responsive */
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 22px;
+                border-radius: 20px;
+            }
+
+            .settings {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .password-box {
+                flex-wrap: wrap;
+            }
+
+            #password {
+                width: 100%;
+                flex-basis: 100%;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .title h1 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="title">
+        <h1>🔐 Password Generator</h1>
+        <p>Create strong and secure random passwords</p>
+    </div>
+
+    <!-- Password -->
+    <div class="password-box">
+
+        <input
+            type="text"
+            id="password"
+            placeholder="Your password will appear here..."
+            readonly
+        >
+
+        <button class="icon-btn" id="showBtn" title="Show/Hide">
+            👁
+        </button>
+
+        <button class="icon-btn" id="copyBtn" title="Copy Password">
+            📋
+        </button>
+
+    </div>
+
+    <!-- Strength -->
+    <div class="strength-area">
+
+        <div class="strength-top">
+            <span>Password Strength</span>
+            <span id="strengthText">Not Generated</span>
+        </div>
+
+        <div class="strength-bar">
+            <div id="strengthFill"></div>
+        </div>
+
+    </div>
+
+    <!-- Settings -->
+    <div class="settings">
+
+        <!-- Length -->
+        <div class="setting-card">
+
+            <h3>📏 Password Length</h3>
+
+            <div class="length-row">
+
+                <input
+                    type="range"
+                    id="length"
+                    min="4"
+                    max="50"
+                    value="16"
+                >
+
+                <span id="lengthValue">16</span>
+
+            </div>
+
+        </div>
+
+        <!-- Character Options -->
+        <div class="setting-card">
+
+            <h3>⚙️ Character Options</h3>
+
+            <div class="options">
+
+                <label class="option">
+                    <input type="checkbox" id="uppercase" checked>
+                    Uppercase
+                </label>
+
+                <label class="option">
+                    <input type="checkbox" id="lowercase" checked>
+                    Lowercase
+                </label>
+
+                <label class="option">
+                    <input type="checkbox" id="numbers" checked>
+                    Numbers
+                </label>
+
+                <label class="option">
+                    <input type="checkbox" id="symbols" checked>
+                    Symbols
+                </label>
+
+                <label class="option">
+                    <input type="checkbox" id="ambiguous">
+                    Exclude Ambiguous
+                </label>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+
+        <button class="generate-btn" id="generateBtn">
+            ⚡ Generate Password
+        </button>
+
+        <button class="clear-btn" id="clearBtn">
+            🗑 Clear
+        </button>
+
+    </div>
+
+    <!-- History -->
+    <div class="history">
+
+        <div class="history-header">
+
+            <h3>🕘 Password History</h3>
+
+            <button id="clearHistory">
+                Clear History
+            </button>
+
+        </div>
+
+        <div id="historyList"></div>
+
+    </div>
+
+</div>
+
+<div class="toast" id="toast">
+    Password copied!
+</div>
+
+
+<script>
+
+    // -------------------------------
+    // Elements
+    // -------------------------------
+
+    const passwordInput = document.getElementById("password");
+    const lengthInput = document.getElementById("length");
+    const lengthValue = document.getElementById("lengthValue");
+
+    const uppercase = document.getElementById("uppercase");
+    const lowercase = document.getElementById("lowercase");
+    const numbers = document.getElementById("numbers");
+    const symbols = document.getElementById("symbols");
+    const ambiguous = document.getElementById("ambiguous");
+
+    const generateBtn = document.getElementById("generateBtn");
+    const clearBtn = document.getElementById("clearBtn");
+
+    const copyBtn = document.getElementById("copyBtn");
+    const showBtn = document.getElementById("showBtn");
+
+    const strengthText = document.getElementById("strengthText");
+    const strengthFill = document.getElementById("strengthFill");
+
+    const historyList = document.getElementById("historyList");
+    const clearHistoryBtn = document.getElementById("clearHistory");
+
+    const toast = document.getElementById("toast");
+
+
+    // -------------------------------
+    // Character sets
+    // -------------------------------
+
+    const characterSets = {
+
+        uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+
+        lowercase: "abcdefghijklmnopqrstuvwxyz",
+
+        numbers: "0123456789",
+
+        symbols: "!@#$%^&*()_+-=[]{}|;:,.<>?/"
+
+    };
+
+
+    // -------------------------------
+    // Length slider
+    // -------------------------------
+
+    lengthInput.addEventListener("input", () => {
+
+        lengthValue.textContent = lengthInput.value;
+
+        generatePassword();
+
+    });
+
+
+    // -------------------------------
+    // Generate secure random number
+    // -------------------------------
+
+    function secureRandom(max) {
+
+        const array = new Uint32Array(1);
+
+        crypto.getRandomValues(array);
+
+        return array[0] % max;
+
+    }
+
+
+    // -------------------------------
+    // Generate Password
+    // -------------------------------
+
+    function generatePassword() {
+
+        const length = parseInt(lengthInput.value);
+
+        let availableCharacters = "";
+
+        let selectedSets = [];
+
+
+        if (uppercase.checked) {
+
+            selectedSets.push(characterSets.uppercase);
+
+        }
+
+        if (lowercase.checked) {
+
+            selectedSets.push(characterSets.lowercase);
+
+        }
+
+        if (numbers.checked) {
+
+            selectedSets.push(characterSets.numbers);
+
+        }
+
+        if (symbols.checked) {
+
+            selectedSets.push(characterSets.symbols);
+
+        }
+
+
+        // Check character selection
+
+        if (selectedSets.length === 0) {
+
+            showToast("Select at least one character type!");
+
+            return;
+
+        }
+
+
+        selectedSets.forEach(set => {
+
+            availableCharacters += set;
+
+        });
+
+
+        // Remove ambiguous characters
+
+        if (ambiguous.checked) {
+
+            const ambiguousCharacters = "Il1O0o|{}[]()";
+
+            availableCharacters =
+                availableCharacters
+                    .split("")
+                    .filter(char => !ambiguousCharacters.includes(char))
+                    .join("");
+
+        }
+
+
+        let password = "";
+
+
+        // Guarantee at least one character from every selected type
+
+        selectedSets.forEach(set => {
+
+            let usableSet = set;
+
+            if (ambiguous.checked) {
+
+                const ambiguousCharacters = "Il1O0o|{}[]()";
+
+                usableSet = set
+                    .split("")
+                    .filter(char => !ambiguousCharacters.includes(char))
+                    .join("");
+
+            }
+
+            if (usableSet.length > 0 && password.length < length) {
+
+                password +=
+                    usableSet[secureRandom(usableSet.length)];
+
+            }
+
+        });
+
+
+        // Fill remaining characters
+
+        while (password.length < length) {
+
+            password +=
+                availableCharacters[
+                    secureRandom(availableCharacters.length)
+                ];
+
+        }
+
+
+        // Shuffle password
+
+        password = shuffleString(password);
+
+
+        passwordInput.value = password;
+
+        passwordInput.type = "password";
+
+        showBtn.textContent = "👁";
+
+        updateStrength(password);
+
+        addToHistory(password);
+
+    }
+
+
+    // -------------------------------
+    // Secure shuffle
+    // -------------------------------
+
+    function shuffleString(string) {
+
+        const array = string.split("");
+
+        for (let i = array.length - 1; i > 0; i--) {
+
+            const j = secureRandom(i + 1);
+
+            [array[i], array[j]] =
+                [array[j], array[i]];
+
+        }
+
+        return array.join("");
+
+    }
+
+
+    // -------------------------------
+    // Password Strength
+    // -------------------------------
+
+    function updateStrength(password) {
+
+        if (!password) {
+
+            strengthText.textContent = "Not Generated";
+
+            strengthFill.style.width = "0%";
+
+            return;
+
+        }
+
+
+        let score = 0;
+
+
+        if (password.length >= 8) score++;
+
+        if (password.length >= 12) score++;
+
+        if (password.length >= 16) score++;
+
+        if (/[A-Z]/.test(password)) score++;
+
+        if (/[a-z]/.test(password)) score++;
+
+        if (/[0-9]/.test(password)) score++;
+
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+
+        let strength;
+        let color;
+        let width;
+
+
+        if (score <= 2) {
+
+            strength = "Very Weak";
+            color = "#ff3355";
+            width = 20;
+
+        } else if (score <= 4) {
+
+            strength = "Weak";
+            color = "#ff8800";
+            width = 40;
+
+        } else if (score <= 5) {
+
+            strength = "Medium";
+            color = "#ffd000";
+            width = 60;
+
+        } else if (score <= 6) {
+
+            strength = "Strong";
+            color = "#00e5ff";
+            width = 80;
+
+        } else {
+
+            strength = "Very Strong";
+            color = "#00ff88";
+            width = 100;
+
+        }
+
+
+        strengthText.textContent = strength;
+
+        strengthText.style.color = color;
+
+        strengthFill.style.width = width + "%";
+
+        strengthFill.style.background = color;
+
+        strengthFill.style.color = color;
+
+    }
+
+
+    // -------------------------------
+    // Copy Password
+    // -------------------------------
+
+    copyBtn.addEventListener("click", async () => {
+
+        const password = passwordInput.value;
+
+        if (!password) {
+
+            showToast("Generate a password first!");
+
+            return;
+
+        }
+
+
+        try {
+
+            await navigator.clipboard.writeText(password);
+
+            showToast("Password copied! 📋");
+
+        } catch (error) {
+
+            // Fallback
+
+            passwordInput.type = "text";
+
+            passwordInput.select();
+
+            document.execCommand("copy");
+
+            passwordInput.type = "password";
+
+            showToast("Password copied!");
+
+        }
+
+    });
+
+
+    // -------------------------------
+    // Show / Hide Password
+    // -------------------------------
+
+    showBtn.addEventListener("click", () => {
+
+        if (!passwordInput.value) return;
+
+
+        if (passwordInput.type === "password") {
+
+            passwordInput.type = "text";
+
+            showBtn.textContent = "🙈";
+
+        } else {
+
+            passwordInput.type = "password";
+
+            showBtn.textContent = "👁";
+
+        }
+
+    });
+
+
+    // -------------------------------
+    // Clear
+    // -------------------------------
+
+    clearBtn.addEventListener("click", () => {
+
+        passwordInput.value = "";
+
+        passwordInput.type = "password";
+
+        showBtn.textContent = "👁";
+
+        strengthText.textContent = "Not Generated";
+
+        strengthText.style.color = "#00ff88";
+
+        strengthFill.style.width = "0%";
+
+    });
+
+
+    // -------------------------------
+    // History
+    // -------------------------------
+
+    let history = [];
+
+
+    function addToHistory(password) {
+
+        if (!password) return;
+
+
+        history.unshift(password);
+
+
+        // Keep only latest 8
+
+        history = history.slice(0, 8);
+
+        renderHistory();
+
+    }
+
+
+    function renderHistory() {
+
+        historyList.innerHTML = "";
+
+
+        history.forEach(password => {
+
+            const item = document.createElement("div");
+
+            item.className = "history-item";
+
+
+            const text = document.createElement("span");
+
+            text.className = "history-password";
+
+            text.textContent = password;
+
+
+            const copy = document.createElement("button");
+
+            copy.className = "history-copy";
+
+            copy.textContent = "Copy";
+
+
+            copy.addEventListener("click", async () => {
+
+                await navigator.clipboard.writeText(password);
+
+                showToast("Password copied! 📋");
+
+            });
+
+
+            item.appendChild(text);
+
+            item.appendChild(copy);
+
+            historyList.appendChild(item);
+
+        });
+
+    }
+
+
+    // -------------------------------
+    // Clear History
+    // -------------------------------
+
+    clearHistoryBtn.addEventListener("click", () => {
+
+        history = [];
+
+        renderHistory();
+
+        showToast("History cleared!");
+
+    });
+
+
+    // -------------------------------
+    // Toast Notification
+    // -------------------------------
+
+    let toastTimer;
+
+
+    function showToast(message) {
+
+        toast.textContent = message;
+
+        toast.classList.add("show");
+
+
+        clearTimeout(toastTimer);
+
+
+        toastTimer = setTimeout(() => {
+
+            toast.classList.remove("show");
+
+        }, 2000);
+
+    }
+
+
+    // -------------------------------
+    // Checkbox updates
+    // -------------------------------
+
+    [
+        uppercase,
+        lowercase,
+        numbers,
+        symbols,
+        ambiguous
+    ].forEach(checkbox => {
+
+        checkbox.addEventListener("change", () => {
+
+            generatePassword();
+
+        });
+
+    });
+
+
+    // -------------------------------
+    // Generate button
+    // -------------------------------
+
+    generateBtn.addEventListener("click", () => {
+
+        generatePassword();
+
+    });
+
+
+    // -------------------------------
+    // Keyboard shortcut
+    // Ctrl + Enter / Cmd + Enter
+    // -------------------------------
+
+    document.addEventListener("keydown", event => {
+
+        if (
+            (event.ctrlKey || event.metaKey) &&
+            event.key === "Enter"
+        ) {
+
+            generatePassword();
+
+        }
+
+    });
+
+
+    // -------------------------------
+    // Initial password
+    // -------------------------------
+
+    generatePassword();
+
+</script>
+
+</body>
+</html>
